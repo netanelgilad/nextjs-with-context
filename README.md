@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Wix SDK Context in NextJS
 
-## Getting Started
+This app demonstrates how to use the Wix SDK context in a NextJS app.
 
-First, run the development server:
+## Usages
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The SDK is used in contextual mode in the following places:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* `page.tsx` - In a server component
+* `client-comp.tsx` - In a client component
+* `server-action.ts` - In a server action
+  
+## Boilerplate to enablue SDK context in NextJS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* `middleware.ts` - Add the Wix SDK middleware that handles the wix session cookie
+* `instrumentation.ts` - Add the Wix SDK instrumentation that registers the global wix client on the server environment
+* `app/layout.tsx` - Add the Wix SDK HOC that registers the global Wix client on the client environment
+* `next.config.js` - Enable the experimental instrumentation hook
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Caveats
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+* Uses the `experimental.instrumentationHook` in `next.config.js` to enable the Wix SDK context in NextJS.
+  * Experimental
+  * Original intent for monitoring and logging
+* Pages that uses any of the Wix SDK methods (directly or transitively in server components) must be explicitly declared as dynamic using `export const dynamic = 'force-dynamic'` in the page component.
+  * This is because the Wix SDK context is not available during build time. NextJS doesn't run the instrumentation hook during build time.
+  * This is a workaround to prevent the NextJS build from failing. NextJS runs pages during build time to try and generate static pages and bail out to dynamic pages if dynamic functions are used. Using contextual SDK methods without the SDK context being intialized results in a build time error.
